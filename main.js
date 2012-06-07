@@ -1,5 +1,5 @@
 var W = {
-	
+
 }
 
 $(document).ready(function() {
@@ -10,7 +10,7 @@ function getWindow(i) {
 	W.bw = $(window).width();
 	W.bh = $(window).height();
 	$(window).resize(getWindow);
-	
+
 	if( i === 1 ) init();
 }
 
@@ -28,7 +28,7 @@ function init() {
 			scale:2
 		}
 	})
-	
+
 	$('img.mid').Scoozy({
 		startTime:.35,
 		endTime:.7,
@@ -40,7 +40,7 @@ function init() {
 			}
 		}
 	})
-	
+
 	$('img.bot').Scoozy({
 		startTime:.55,
 		startTrans:{
@@ -50,9 +50,9 @@ function init() {
 		startPos:{x:'30%',y:'100%'},
 		endPos:{x:'70%',y:'10%'}
 	})
-	
+
 	$(document).trigger('scroll');
-	
+
 	jqmAlert('Scroll Down',2500);
 }
 
@@ -79,10 +79,10 @@ function jqmAlert(message,time) {
 			$.browserPrefix = ''
 		}
 	})($.browser)
-	
+
 	$.fn.Scoozy = function( data ) {
 		var $this = $(this),
-		
+
 			curPos = $this.position(),
 			curTransformations = $this.css( $.browserPrefix + 'transform' ) || $this.css( 'transform' ),
 			values = curTransformations != 'none' ? curTransformations.split('(')[1].split(')')[0].split(',') : 0,
@@ -99,7 +99,7 @@ function jqmAlert(message,time) {
 					y: values[5] || 0
 				}
 			},
-		
+
 			action = $.extend(true,{},{									////////////		ACTION DEFINITIONS
 				elem:$this,
 				startPos:{
@@ -119,31 +119,31 @@ function jqmAlert(message,time) {
 							// if true, startTime -= (duration / 2)
 				/* hide */ // Hides when inactive
 			},data);
-			
+
 		$.ScoozyActions.push(action);
 		return $this
 	}
-	
+
 	function renderAction( a,when ) {
 		var map = {},trans = $.browserPrefix + 'transform';
-		
+
 		if( a.changes.indexOf('left') != -1 ) map.left = a[when + 'Pos'].x
 		if( a.changes.indexOf('top') != -1 ) map.top = a[when + 'Pos'].y
 		if( a.changes.indexOf('rotate') != -1 ) map[trans] = 'scale(' + a[when + 'Trans'].scale + ')'
 		if( a.changes.indexOf('scale') != -1 ) map[trans] = map[trans] ? map[trans] + ' rotate(' + a[when + 'Trans'].rotate + 'deg)' : map[trans]
 		if( a.changes.indexOf('transX') != -1 || a.changes.indexOf('transX') != -1 )
-			map[trans] = map[trans] ? map[trans] + 
+			map[trans] = map[trans] ? map[trans] +
 				' translate(' + a[when + 'Trans'].translate.x + 'px,' + a[when + 'Trans'].translate.y + 'px)' : map[trans]
 		if( a.changes.indexOf('opacity') != -1 ) map.opacity = a[when + 'Trans'].opacity
-		
+
 		$(a.elem).css(map)
 	}
-	
+
 	function getChanges( a ) {
 		var changes = [],
 			sT = a.startTrans,
 			eT = a.endTrans;
-		
+
 		if( a.startPos.x != a.endPos.x ) changes.push('left')
 		if( a.startPos.y != a.endPos.y ) changes.push('top')
 		if( sT.scale != eT.scale ) changes.push('scale')
@@ -151,15 +151,15 @@ function jqmAlert(message,time) {
 		if( sT.opacity != eT.opacity ) changes.push('opacity')
 		if( sT.translate.x != eT.translate.x ) changes.push('transX')
 		if( sT.translate.y != eT.translate.y ) changes.push('transY')
-		
+
 		return changes
 	}
-	
+
 	function calculate( map,type,a,time ) {
 		var distance,start,calc,
 			pre = '',post = '',
 			attr = type;
-		
+
 		switch( type ) {
 			case 'left':
 				start = a.startPos.x;
@@ -203,47 +203,47 @@ function jqmAlert(message,time) {
 		}
 		calc = ((((time - a.startTime) || .00001) / a.duration) * distance) + start;
 		calc = pre ? pre + calc + post : calc;
-		
+
 		map[attr] = map[attr] ? map[attr] + ' ' + calc : calc
 	}
-	
+
 	$(document).scroll(function(e) {
 		if( !$.ScoozyActions ) return false
-		
+
 		var offset = window.pageYOffset,	// page scroll offset
 			time = offset/( $('body').height() - W.bh ),
 			time = time || .000001; // current time
 			wWidth = $(window).width(),
 			wHeight = $(window).height();
-		
-		
+
+
 		function parsePercentages( num, dir ) {
 			dir = dir == 'y' ? wHeight : wWidth
 			return String(num).replace(/%/,'') / 100 * dir
 		}
-		
+
 		$.each( $.ScoozyActions, function(i,v) {
 			v.changes = v.changes || getChanges(v);
-			
+
 			if( time < v.startTime ) renderAction( v,'start' )
 			else if( time > v.endTime ) renderAction( v,'end' )
 			if( time < v.startTime || time > v.endTime ) return true	// if it's not active, continue loop
-			
+
 			var $this = v.elem,map = {};
 			v.duration = v.duration || (v.endTime - v.startTime);
-			
+
 			// parse all percentages into pixels
 			var p = /%/;
 			if( p.test(v.startPos.x) ) v.startPos.x = parsePercentages( v.startPos.x,'x' )
 			if( p.test(v.endPos.x) ) v.endPos.x = parsePercentages( v.endPos.x,'x' )
 			if( p.test(v.startPos.y) ) v.startPos.y = parsePercentages( v.startPos.y,'y' )
 			if( p.test(v.endPos.y) ) v.endPos.y = parsePercentages( v.endPos.y,'y' )
-			
-			
+
+
 			$.each( v.changes,function(_i,_v) {
 				calculate(map,_v,v,time);
 			})
-			
+
 			$this.css( map )
 		})
 	})
